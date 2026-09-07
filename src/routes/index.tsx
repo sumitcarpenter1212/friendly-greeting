@@ -13,6 +13,15 @@ import {
   Heart,
   User,
   ChevronRight,
+  Smartphone,
+  Laptop,
+  Shirt,
+  Headphones,
+  WashingMachine,
+  Sofa,
+  ShoppingBasket,
+  Sparkles,
+  Gift,
 } from "lucide-react";
 import { getProducts, type Product } from "@/lib/catalog.functions";
 import { useSession } from "@/hooks/useSession";
@@ -51,15 +60,26 @@ export const Route = createFileRoute("/")({
 });
 
 const CATEGORIES = [
-  { label: "Mobiles", emoji: "📱" },
-  { label: "Fashion", emoji: "👕" },
-  { label: "Electronics", emoji: "🎧" },
-  { label: "Laptops", emoji: "💻" },
-  { label: "Appliances", emoji: "🧺" },
-  { label: "Home", emoji: "🛋️" },
-  { label: "Grocery", emoji: "🛒" },
-  { label: "Beauty", emoji: "💄" },
+  "Mobiles",
+  "Fashion",
+  "Electronics",
+  "Laptops",
+  "Appliances",
+  "Home",
+  "Grocery",
+  "Beauty",
 ];
+
+const CATEGORY_ICONS: Record<string, typeof Gift> = {
+  Mobiles: Smartphone,
+  Laptops: Laptop,
+  Fashion: Shirt,
+  Electronics: Headphones,
+  Appliances: WashingMachine,
+  Home: Sofa,
+  Grocery: ShoppingBasket,
+  Beauty: Sparkles,
+};
 
 const rupees = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 
@@ -105,18 +125,18 @@ function HomePage() {
           <div className="grid grid-cols-4 gap-y-4">
             {CATEGORIES.map((c) => (
               <button
-                key={c.label}
-                onClick={() => setActive(c.label)}
+                key={c}
+                onClick={() => setActive(c)}
                 className="flex flex-col items-center gap-1.5"
               >
                 <span
-                  className={`flex h-14 w-14 items-center justify-center rounded-full text-2xl ${
-                    active === c.label ? "bg-brand/15 ring-2 ring-brand" : "bg-surface"
+                  className={`flex h-14 w-14 items-center justify-center rounded-full ${
+                    active === c ? "bg-brand/15 ring-2 ring-brand" : "bg-surface"
                   }`}
                 >
-                  {c.emoji}
+                  <CategoryIcon category={c} className="h-6 w-6 text-brand" />
                 </span>
-                <span className="text-[11px] font-medium text-foreground">{c.label}</span>
+                <span className="text-[11px] font-medium text-foreground">{c}</span>
               </button>
             ))}
           </div>
@@ -146,8 +166,8 @@ function HomePage() {
                 key={p.id}
                 className="w-32 shrink-0 snap-start rounded-lg border border-border bg-card p-2"
               >
-                <div className="flex h-24 items-center justify-center rounded-md bg-surface text-3xl">
-                  {emojiFor(p.category)}
+                <div className="flex h-24 items-center justify-center rounded-md bg-surface">
+                  <CategoryIcon category={p.category} className="h-8 w-8 text-brand" />
                 </div>
                 <p className="mt-2 line-clamp-2 text-xs font-medium text-card-foreground">
                   {p.name}
@@ -227,8 +247,8 @@ function TabItem({
 function ProductCard({ product: p }: { product: Product }) {
   return (
     <article className="rounded-lg border border-border bg-card p-2.5">
-      <div className="flex h-32 items-center justify-center rounded-md bg-surface text-5xl">
-        {emojiFor(p.category)}
+      <div className="flex h-32 items-center justify-center rounded-md bg-surface">
+        <CategoryIcon category={p.category} className="h-12 w-12 text-brand" />
       </div>
       <p className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
         {p.brand}
@@ -256,25 +276,7 @@ function ProductCard({ product: p }: { product: Product }) {
   );
 }
 
-function emojiFor(category: string) {
-  switch (category) {
-    case "Mobiles":
-      return "📱";
-    case "Laptops":
-      return "💻";
-    case "Fashion":
-      return "👕";
-    case "Electronics":
-      return "🎧";
-    case "Appliances":
-      return "🧺";
-    case "Home":
-      return "🛋️";
-    case "Grocery":
-      return "🛒";
-    case "Beauty":
-      return "💄";
-    default:
-      return "🎁";
-  }
+function CategoryIcon({ category, className }: { category: string; className?: string }) {
+  const Icon = CATEGORY_ICONS[category] ?? Gift;
+  return <Icon className={className} aria-hidden />;
 }
