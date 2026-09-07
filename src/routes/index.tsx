@@ -1,119 +1,205 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Search,
-  Mic,
-  Bell,
-  ShoppingCart,
   Star,
   BadgeCheck,
-  Home,
-  LayoutGrid,
-  Heart,
-  User,
-  ChevronRight,
-  Smartphone,
-  Laptop,
+  ShoppingBag,
   Shirt,
-  Headphones,
-  WashingMachine,
-  Sofa,
-  ShoppingBasket,
+  Smartphone,
   Sparkles,
-  Gift,
+  Laptop,
+  Sofa,
+  Plane,
+  ImageIcon,
 } from "lucide-react";
-import { getProducts, type Product } from "@/lib/catalog.functions";
 import { useSession } from "@/hooks/useSession";
 
-const productsQuery = queryOptions({
-  queryKey: ["products"],
-  queryFn: () => getProducts(),
-});
+import banner1 from "@/assets/banner-1.jpg";
+import banner2 from "@/assets/banner-2.jpg";
+import banner3 from "@/assets/banner-3.jpg";
+import banner4 from "@/assets/banner-4.jpg";
+import banner5 from "@/assets/banner-5.jpg";
+import pPhoneRed from "@/assets/p-phone-red.jpg";
+import pLuggage from "@/assets/p-luggage.jpg";
+import pChair from "@/assets/p-chair.jpg";
+import pFridge from "@/assets/p-fridge.jpg";
+import pPhoneOrange from "@/assets/p-phone-orange.jpg";
+import pTv from "@/assets/p-tv.jpg";
 
 export const Route = createFileRoute("/")({
-  loader: ({ context }) => context.queryClient.ensureQueryData(productsQuery),
   head: () => ({
     meta: [
-      { title: "ShopKart — Mobiles, Fashion & Electronics Online" },
+      { title: "ShopKart — Sale is Live, Up to 98% Off Online Shopping" },
       {
         name: "description",
         content:
-          "Shop mobiles, laptops, fashion, electronics and home essentials at big discounts on ShopKart.",
+          "Live sale on mobiles, fashion, beauty, electronics and home appliances with assured products and free two-day delivery.",
       },
-      { property: "og:title", content: "ShopKart — Online Shopping App" },
+      { property: "og:title", content: "ShopKart — Sale is Live" },
       {
         property: "og:description",
-        content: "Daily deals on mobiles, laptops, fashion and home essentials.",
+        content: "Up to 98% off on mobiles, fashion, electronics and appliances.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: HomePage,
-  errorComponent: () => (
-    <div className="p-6 text-center text-sm text-muted-foreground">
-      Products could not be loaded. Please refresh.
-    </div>
-  ),
-  notFoundComponent: () => <div className="p-6 text-center">Not found</div>,
 });
 
+const BANNERS = [banner1, banner2, banner3, banner4, banner5];
+
 const CATEGORIES = [
-  "Mobiles",
-  "Fashion",
-  "Electronics",
-  "Laptops",
-  "Appliances",
-  "Home",
-  "Grocery",
-  "Beauty",
+  { label: "For You", icon: ShoppingBag },
+  { label: "Fashion", icon: Shirt },
+  { label: "Mobiles", icon: Smartphone },
+  { label: "Beauty", icon: Sparkles },
+  { label: "Electronics", icon: Laptop },
+  { label: "Home", icon: Sofa },
 ];
 
-const CATEGORY_ICONS: Record<string, typeof Gift> = {
-  Mobiles: Smartphone,
-  Laptops: Laptop,
-  Fashion: Shirt,
-  Electronics: Headphones,
-  Appliances: WashingMachine,
-  Home: Sofa,
-  Grocery: ShoppingBasket,
-  Beauty: Sparkles,
+type Item = {
+  id: string;
+  name: string;
+  image: string;
+  price: number;
+  oldPrice: number;
+  discount: number;
+  rating: number;
+  ratings: number;
+  category: string;
 };
 
-const rupees = (n: number) => `₹${n.toLocaleString("en-IN")}`;
+const ITEMS: Item[] = [
+  {
+    id: "1",
+    name: "vivo V50 5G (Rose Red, 128 GB)",
+    image: pPhoneRed,
+    price: 899,
+    oldPrice: 36999,
+    discount: 98,
+    rating: 4.5,
+    ratings: 2813,
+    category: "Mobiles",
+  },
+  {
+    id: "2",
+    name: "Magnum by Safari Hard Trolley Set of 3",
+    image: pLuggage,
+    price: 699,
+    oldPrice: 4799,
+    discount: 85,
+    rating: 4.5,
+    ratings: 6757,
+    category: "Home",
+  },
+  {
+    id: "3",
+    name: "GREEN SOUL Kiev Orthopedic Office Chair",
+    image: pChair,
+    price: 478,
+    oldPrice: 6999,
+    discount: 93,
+    rating: 4.5,
+    ratings: 8908,
+    category: "Home",
+  },
+  {
+    id: "4",
+    name: "Samsung 189 L Direct Cool Refrigerator",
+    image: pFridge,
+    price: 1499,
+    oldPrice: 13998,
+    discount: 89,
+    rating: 4.5,
+    ratings: 7721,
+    category: "Electronics",
+  },
+  {
+    id: "5",
+    name: "Apple iPhone 16 Pro (Orange Titanium, 256 GB)",
+    image: pPhoneOrange,
+    price: 1999,
+    oldPrice: 119900,
+    discount: 98,
+    rating: 4.6,
+    ratings: 12480,
+    category: "Mobiles",
+  },
+  {
+    id: "6",
+    name: "Samsung 80 cm HD Ready Smart LED TV",
+    image: pTv,
+    price: 1299,
+    oldPrice: 15990,
+    discount: 91,
+    rating: 4.4,
+    ratings: 9345,
+    category: "Electronics",
+  },
+];
+
+const rupees = (n: number) => `₹${n.toLocaleString("en-IN")}.00`;
 
 function HomePage() {
-  const { data: products } = useSuspenseQuery(productsQuery);
   const { session } = useSession();
-  const [active, setActive] = useState<string>("All");
+  const [tab, setTab] = useState("For You");
+  const [slide, setSlide] = useState(0);
+  const [secondsLeft, setSecondsLeft] = useState(9 * 60 + 13);
+  const trackRef = useRef<HTMLDivElement>(null);
 
-  const deals = useMemo(() => products.filter((p) => p.featured).slice(0, 8), [products]);
-  const grid = useMemo(
-    () => (active === "All" ? products : products.filter((p) => p.category === active)),
-    [products, active],
+  useEffect(() => {
+    const t = setInterval(() => setSlide((s) => (s + 1) % BANNERS.length), 3500);
+    return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    const t = setInterval(
+      () => setSecondsLeft((s) => (s <= 0 ? 9 * 60 + 13 : s - 1)),
+      1000,
+    );
+    return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    const el = trackRef.current;
+    if (el) el.scrollTo({ left: slide * el.clientWidth, behavior: "smooth" });
+  }, [slide]);
+
+  const items = useMemo(
+    () => (tab === "For You" ? ITEMS : ITEMS.filter((i) => i.category === tab)),
+    [tab],
   );
 
+  const mins = Math.floor(secondsLeft / 60);
+  const secs = secondsLeft % 60;
+
   return (
-    <div className="min-h-screen bg-surface pb-20">
-      <header className="sticky top-0 z-20 bg-brand text-brand-foreground shadow-md">
-        <div className="mx-auto flex max-w-md items-center gap-3 px-4 pt-3">
-          <span className="text-lg font-bold italic tracking-tight">ShopKart</span>
-          <div className="ml-auto flex items-center gap-4">
-            <Bell className="h-5 w-5" aria-hidden />
-            <ShoppingCart className="h-5 w-5" aria-hidden />
+    <div className="min-h-screen bg-surface pb-6">
+      <header className="sticky top-0 z-20 bg-gradient-to-b from-sky-200 to-sky-100">
+        <div className="mx-auto max-w-md px-3 pt-3">
+          <div className="flex gap-3">
+            <button className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gold py-3 shadow-sm">
+              <ImageIcon className="h-5 w-5 text-gold-foreground" aria-hidden />
+              <span className="text-base font-extrabold italic text-gold-foreground">
+                ShopKart
+              </span>
+            </button>
+            <button className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-background py-3 shadow-sm">
+              <Plane className="h-5 w-5 text-destructive" aria-hidden />
+              <span className="text-base font-extrabold italic text-foreground">Travel</span>
+            </button>
           </div>
-        </div>
-        <div className="mx-auto max-w-md px-4 py-3">
-          <label className="flex items-center gap-2 rounded-md bg-background px-3 py-2.5 text-foreground shadow-sm">
-            <Search className="h-4 w-4 text-muted-foreground" aria-hidden />
+
+          <label className="mt-3 mb-3 flex items-center gap-3 rounded-xl border border-border bg-background px-4 py-3 shadow-sm">
+            <Search className="h-5 w-5 text-brand" aria-hidden />
             <input
               type="search"
-              placeholder="Search for mobiles, shoes, TVs…"
-              className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-              aria-label="Search products"
+              placeholder="Search for Product"
+              aria-label="Search for Product"
+              className="w-full bg-transparent text-base outline-none placeholder:text-muted-foreground"
             />
-            <Mic className="h-4 w-4 text-brand" aria-hidden />
           </label>
         </div>
       </header>
@@ -121,162 +207,131 @@ function HomePage() {
       <main className="mx-auto max-w-md">
         <h1 className="sr-only">ShopKart online shopping</h1>
 
-        <section className="bg-background px-2 py-4" aria-label="Categories">
-          <div className="grid grid-cols-4 gap-y-4">
-            {CATEGORIES.map((c) => (
+        <nav
+          className="flex gap-6 overflow-x-auto bg-background px-4 pt-4"
+          aria-label="Categories"
+        >
+          {CATEGORIES.map(({ label, icon: Icon }) => {
+            const on = tab === label;
+            return (
               <button
-                key={c}
-                onClick={() => setActive(c)}
-                className="flex flex-col items-center gap-1.5"
+                key={label}
+                onClick={() => setTab(label)}
+                className="flex shrink-0 flex-col items-center gap-1.5 pb-2"
               >
                 <span
-                  className={`flex h-14 w-14 items-center justify-center rounded-full ${
-                    active === c ? "bg-brand/15 ring-2 ring-brand" : "bg-surface"
+                  className={`flex h-12 w-12 items-center justify-center rounded-xl ${
+                    on ? "bg-brand/10" : "bg-transparent"
                   }`}
                 >
-                  <CategoryIcon category={c} className="h-6 w-6 text-brand" />
+                  <Icon className="h-7 w-7 text-foreground" strokeWidth={1.5} aria-hidden />
                 </span>
-                <span className="text-[11px] font-medium text-foreground">{c}</span>
+                <span
+                  className={`text-[13px] ${on ? "font-bold text-foreground" : "text-foreground/80"}`}
+                >
+                  {label}
+                </span>
+                <span
+                  className={`h-1 w-full rounded-full ${on ? "bg-brand" : "bg-transparent"}`}
+                />
               </button>
+            );
+          })}
+        </nav>
+
+        <section className="bg-surface px-3 py-3" aria-label="Offers">
+          <div
+            ref={trackRef}
+            className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            {BANNERS.map((src, i) => (
+              <img
+                key={src}
+                src={src}
+                alt={`Sale offer banner ${i + 1}`}
+                width={1200}
+                height={608}
+                loading={i === 0 ? "eager" : "lazy"}
+                className="aspect-[2/1] w-full shrink-0 snap-center rounded-xl object-cover"
+              />
             ))}
           </div>
-        </section>
-
-        <section className="mt-2 px-3 py-4" aria-label="Offer banner">
-          <div className="rounded-xl bg-gradient-to-r from-brand to-brand-dark p-5 text-brand-foreground shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-widest opacity-90">
-              Big Saving Days
-            </p>
-            <p className="mt-1 text-2xl font-bold leading-tight">Up to 75% off</p>
-            <p className="mt-1 text-sm opacity-90">On mobiles, fashion &amp; electronics</p>
-            <span className="mt-3 inline-flex items-center gap-1 rounded-full bg-gold px-3 py-1 text-xs font-bold text-gold-foreground">
-              Shop now <ChevronRight className="h-3.5 w-3.5" aria-hidden />
-            </span>
-          </div>
-        </section>
-
-        <section className="bg-background py-4" aria-label="Deals of the day">
-          <div className="flex items-center justify-between px-4">
-            <h2 className="text-base font-bold text-foreground">Deals of the Day</h2>
-            <span className="text-xs font-semibold text-brand">View all</span>
-          </div>
-          <div className="mt-3 flex snap-x gap-3 overflow-x-auto px-4 pb-1">
-            {deals.map((p) => (
-              <article
-                key={p.id}
-                className="w-32 shrink-0 snap-start rounded-lg border border-border bg-card p-2"
-              >
-                <div className="flex h-24 items-center justify-center rounded-md bg-surface">
-                  <CategoryIcon category={p.category} className="h-8 w-8 text-brand" />
-                </div>
-                <p className="mt-2 line-clamp-2 text-xs font-medium text-card-foreground">
-                  {p.name}
-                </p>
-                <p className="mt-1 text-xs font-bold text-price-drop">{p.discount}% off</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="mt-2 bg-background px-3 py-4" aria-label="Products">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-foreground">
-              {active === "All" ? "Recommended for you" : active}
-            </h2>
-            {active !== "All" && (
+          <div className="mt-2 flex justify-center gap-1.5">
+            {BANNERS.map((src, i) => (
               <button
-                onClick={() => setActive("All")}
-                className="text-xs font-semibold text-brand"
-              >
-                Clear
-              </button>
-            )}
-          </div>
-
-          <div className="mt-3 grid grid-cols-2 gap-3">
-            {grid.map((p) => (
-              <ProductCard key={p.id} product={p} />
+                key={src}
+                aria-label={`Show banner ${i + 1}`}
+                onClick={() => setSlide(i)}
+                className={`h-1.5 rounded-full transition-all ${
+                  slide === i ? "w-5 bg-brand" : "w-1.5 bg-border"
+                }`}
+              />
             ))}
           </div>
-          {grid.length === 0 && (
-            <p className="py-8 text-center text-sm text-muted-foreground">
-              No products in this category yet.
-            </p>
-          )}
         </section>
-      </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background">
-        <div className="mx-auto flex max-w-md items-center justify-around py-2">
-          <TabItem icon={<Home className="h-5 w-5" />} label="Home" activeTab />
-          <TabItem icon={<LayoutGrid className="h-5 w-5" />} label="Categories" />
-          <TabItem icon={<Heart className="h-5 w-5" />} label="Wishlist" />
-          <Link to="/auth" className="flex flex-col items-center gap-0.5 text-muted-foreground">
-            <User className="h-5 w-5" aria-hidden />
-            <span className="text-[10px] font-medium">
-              {session ? "Account" : "Login"}
+        <section className="bg-background py-4 text-center" aria-label="Live sale">
+          <p className="text-xl font-bold text-foreground">
+            Live Sale :{" "}
+            <span className="text-price-live">
+              {mins}min {String(secs).padStart(2, "0")}sec
             </span>
+          </p>
+          <p className="mt-1 flex items-center justify-center gap-2 text-base font-semibold text-success">
+            <span className="h-2.5 w-2.5 rounded-full bg-success" aria-hidden />
+            89,450 People watching this sale
+          </p>
+        </section>
+
+        <section className="grid grid-cols-2 gap-3 p-3" aria-label="Products">
+          {items.map((p) => (
+            <article key={p.id} className="rounded-lg bg-card p-3 shadow-sm">
+              <img
+                src={p.image}
+                alt={p.name}
+                width={816}
+                height={816}
+                loading="lazy"
+                className="aspect-square w-full rounded-md bg-background object-contain"
+              />
+              <h3 className="mt-3 truncate text-[15px] text-card-foreground">{p.name}</h3>
+              <p className="mt-1 text-[15px]">
+                <span className="font-semibold text-success">{p.discount}% Off</span>{" "}
+                <span className="text-muted-foreground line-through">{rupees(p.oldPrice)}</span>
+              </p>
+              <div className="mt-1 flex items-center justify-between gap-1">
+                <span className="text-lg font-bold text-card-foreground">
+                  {rupees(p.price)}
+                </span>
+                <span className="flex items-center gap-1 rounded-full bg-brand px-2 py-0.5 text-[11px] font-bold italic text-brand-foreground">
+                  <BadgeCheck className="h-3.5 w-3.5" aria-hidden /> Assured
+                </span>
+              </div>
+              <div className="mt-2 flex items-center gap-2">
+                <span className="flex items-center gap-1 rounded bg-success px-1.5 py-0.5 text-xs font-bold text-brand-foreground">
+                  {p.rating} <Star className="h-3 w-3 fill-current" aria-hidden />
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  {p.ratings.toLocaleString("en-IN")} Ratings
+                </span>
+              </div>
+              <p className="mt-2 text-sm text-foreground">Free Delivery in Two Days</p>
+            </article>
+          ))}
+        </section>
+
+        {items.length === 0 && (
+          <p className="py-10 text-center text-sm text-muted-foreground">
+            No products in this category yet.
+          </p>
+        )}
+
+        <div className="px-3 pb-6 text-center">
+          <Link to="/auth" className="text-sm font-semibold text-brand">
+            {session ? "My Account" : "Login / Sign up"}
           </Link>
         </div>
-      </nav>
+      </main>
     </div>
   );
-}
-
-function TabItem({
-  icon,
-  label,
-  activeTab,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  activeTab?: boolean;
-}) {
-  return (
-    <span
-      className={`flex flex-col items-center gap-0.5 ${
-        activeTab ? "text-brand" : "text-muted-foreground"
-      }`}
-    >
-      {icon}
-      <span className="text-[10px] font-medium">{label}</span>
-    </span>
-  );
-}
-
-function ProductCard({ product: p }: { product: Product }) {
-  return (
-    <article className="rounded-lg border border-border bg-card p-2.5">
-      <div className="flex h-32 items-center justify-center rounded-md bg-surface">
-        <CategoryIcon category={p.category} className="h-12 w-12 text-brand" />
-      </div>
-      <p className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-        {p.brand}
-      </p>
-      <h3 className="line-clamp-2 text-xs font-medium text-card-foreground">{p.name}</h3>
-      <div className="mt-1.5 flex items-center gap-1.5">
-        <span className="flex items-center gap-0.5 rounded bg-success px-1.5 py-0.5 text-[10px] font-bold text-brand-foreground">
-          {p.rating} <Star className="h-2.5 w-2.5 fill-current" aria-hidden />
-        </span>
-        <span className="text-[10px] text-muted-foreground">
-          ({p.ratings_count.toLocaleString("en-IN")})
-        </span>
-        {p.assured && <BadgeCheck className="h-3.5 w-3.5 text-brand" aria-hidden />}
-      </div>
-      <div className="mt-1.5 flex flex-wrap items-baseline gap-1.5">
-        <span className="text-sm font-bold text-card-foreground">{rupees(p.price)}</span>
-        {p.old_price && (
-          <span className="text-[11px] text-muted-foreground line-through">
-            {rupees(p.old_price)}
-          </span>
-        )}
-        <span className="text-[11px] font-bold text-price-drop">{p.discount}% off</span>
-      </div>
-    </article>
-  );
-}
-
-function CategoryIcon({ category, className }: { category: string; className?: string }) {
-  const Icon = CATEGORY_ICONS[category] ?? Gift;
-  return <Icon className={className} aria-hidden />;
 }
