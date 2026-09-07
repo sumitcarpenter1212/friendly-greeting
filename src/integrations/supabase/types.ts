@@ -14,7 +14,75 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      products: {
+        Row: {
+          assured: boolean
+          brand: string
+          category: string
+          created_at: string
+          discount: number
+          featured: boolean
+          id: string
+          image_url: string | null
+          name: string
+          old_price: number | null
+          price: number
+          rating: number
+          ratings_count: number
+        }
+        Insert: {
+          assured?: boolean
+          brand?: string
+          category: string
+          created_at?: string
+          discount?: number
+          featured?: boolean
+          id?: string
+          image_url?: string | null
+          name: string
+          old_price?: number | null
+          price: number
+          rating?: number
+          ratings_count?: number
+        }
+        Update: {
+          assured?: boolean
+          brand?: string
+          category?: string
+          created_at?: string
+          discount?: number
+          featured?: boolean
+          id?: string
+          image_url?: string | null
+          name?: string
+          old_price?: number | null
+          price?: number
+          rating?: number
+          ratings_count?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string | null
+          id: string
+          phone: string | null
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string | null
+          id: string
+          phone?: string | null
+        }
+        Update: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
