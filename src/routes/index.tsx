@@ -303,9 +303,13 @@ function HomePage() {
                 <span className="text-lg font-bold text-card-foreground">
                   {rupees(p.price)}
                 </span>
-                <span className="flex items-center gap-1 rounded-full bg-brand px-2 py-0.5 text-[11px] font-bold italic text-brand-foreground">
-                  <BadgeCheck className="h-3.5 w-3.5" aria-hidden /> Assured
+                <span className="flex items-center gap-1 rounded-full bg-background px-1.5 py-0.5 text-[12px] font-bold italic text-brand">
+                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-gold text-[10px] font-black not-italic text-gold-foreground">
+                    f
+                  </span>
+                  Assured
                 </span>
+
               </div>
               <div className="mt-2 flex items-center gap-2">
                 <span className="flex items-center gap-1 rounded bg-success px-1.5 py-0.5 text-xs font-bold text-brand-foreground">
