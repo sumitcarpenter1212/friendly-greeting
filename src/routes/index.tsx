@@ -3,7 +3,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Search,
   Star,
-  BadgeCheck,
   ShoppingBag,
   Shirt,
   Smartphone,
